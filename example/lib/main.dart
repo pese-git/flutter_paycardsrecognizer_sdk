@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_paycardsrecognizer_sdk/flutter_paycardsrecognizer_sdk.dart';
 
@@ -29,7 +29,8 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await FlutterPaycardsrecognizerSdk.platformVersion ?? 'Unknown platform version';
+          await FlutterPaycardsrecognizerSdk.newInstance().platformVersion ??
+              'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

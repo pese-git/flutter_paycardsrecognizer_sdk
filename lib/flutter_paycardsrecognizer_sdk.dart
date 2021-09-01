@@ -1,13 +1,15 @@
-
 import 'dart:async';
 
 import 'package:flutter/services.dart';
 
 class FlutterPaycardsrecognizerSdk {
-  static const MethodChannel _channel =
+  static FlutterPaycardsrecognizerSdk newInstance() =>
+      FlutterPaycardsrecognizerSdk();
+
+  final MethodChannel _channel =
       const MethodChannel('flutter_paycardsrecognizer_sdk');
 
-  static Future<String?> get platformVersion async {
+  Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
   }
