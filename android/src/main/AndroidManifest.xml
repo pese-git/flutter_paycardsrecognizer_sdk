@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="org.cards.pay.paycardsrecognizer.sdk.flutter_paycardsrecognizer_sdk">
+</manifest>
