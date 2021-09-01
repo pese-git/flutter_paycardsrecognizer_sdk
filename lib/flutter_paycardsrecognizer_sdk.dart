@@ -9,8 +9,9 @@ class FlutterPaycardsrecognizerSdk {
   final MethodChannel _channel =
       const MethodChannel('flutter_paycardsrecognizer_sdk');
 
-  Future<String?> get platformVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformVersion');
+  Future<Map<dynamic, dynamic>> scanCard() async {
+    final Map<dynamic, dynamic> version =
+        await _channel.invokeMethod('startRecognizer');
     return version;
   }
 }

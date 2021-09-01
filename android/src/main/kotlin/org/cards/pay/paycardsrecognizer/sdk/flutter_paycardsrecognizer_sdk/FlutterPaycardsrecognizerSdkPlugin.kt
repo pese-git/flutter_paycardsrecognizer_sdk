@@ -16,6 +16,7 @@
 
 package org.cards.pay.paycardsrecognizer.sdk.flutter_paycardsrecognizer_sdk
 
+import android.app.Activity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -23,8 +24,24 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 
+import cards.pay.paycardsrecognizer.sdk.ScanCardIntent
+
+import android.content.Intent
+import io.flutter.plugin.common.PluginRegistry
+import android.util.Log
+import cards.pay.paycardsrecognizer.sdk.Card
+import cards.pay.paycardsrecognizer.sdk.ui.ScanCardActivity
+
+
 /** FlutterPaycardsrecognizerSdkPlugin */
-class FlutterPaycardsrecognizerSdkPlugin : FlutterPlugin, ActivityAware {
+class FlutterPaycardsrecognizerSdkPlugin : FlutterPlugin,
+    ActivityAware, PluginRegistry.ActivityResultListener {
+    companion object {
+        val REQUEST_CODE_SCAN_CARD: Int = 1
+    }
+
+    private var mResult: Result? = null
+
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -41,10 +58,48 @@ class FlutterPaycardsrecognizerSdkPlugin : FlutterPlugin, ActivityAware {
         channel.setMethodCallHandler(null)
     }
 
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (mResult == null) {
+            return false
+        }
+        if (requestCode == REQUEST_CODE_SCAN_CARD) {
+            if (resultCode == Activity.RESULT_OK) {
+                val card: Card? = data?.getParcelableExtra(ScanCardIntent.RESULT_PAYCARDS_CARD)
+                if (card != null) {
+                    val cardData = """
+                Card number: ${card.cardNumberRedacted}
+                Card holder: ${card.cardHolderName.toString()}
+                Card expiration date: ${card.expirationDate}
+                """.trimIndent()
+                    Log.i("flutter_paycards", "Card info: $cardData")
+                    val response: MutableMap<String, Any?> = HashMap()
+                    response["cardHolderName"] = card.cardHolderName
+                    response["cardNumber"] = card.cardNumber
+                    if (card.expirationDate != null) {
+                        response["expiryMonth"] = card.expirationDate!!.substring(0, 2)
+                        response["expiryYear"] = card.expirationDate!!.substring(3, 5)
+                    }
+                    mResult?.success(response)
+                }
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                mResult?.error("CANCELED", null, null)
+                Log.i("flutter_paycards", "Scan canceled")
+            } else {
+                mResult?.error("SCAN_FAILED", null, null)
+                Log.i("flutter_paycards", "Scan failed")
+            }
+            mResult = null
+            return true
+        }
+        return false
+    }
+
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         channel.setMethodCallHandler { call: MethodCall, result: Result ->
-            runMethod(call, result)
+            onMethodCall(binding.activity, call, result)
         }
+        binding.addActivityResultListener(this)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -53,19 +108,33 @@ class FlutterPaycardsrecognizerSdkPlugin : FlutterPlugin, ActivityAware {
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         channel.setMethodCallHandler { call: MethodCall, result: Result ->
-            runMethod(call, result)
+            onMethodCall(binding.activity, call, result)
         }
+        binding.addActivityResultListener(this)
     }
 
     override fun onDetachedFromActivity() {
         channel.setMethodCallHandler(null)
     }
 
-    private fun runMethod(call: MethodCall, result: Result) {
+    private fun onMethodCall(activity: Activity, call: MethodCall, result: Result) {
+        if (mResult != null) {
+            result.error("ALREADY_ACTIVE", "Scan card is already active", null)
+            return
+        }
+        mResult = result
+        if (call.method.equals("startRecognizer")) {
+            val scanIntent = Intent(activity, ScanCardActivity::class.java)
+            activity.startActivityForResult(scanIntent, REQUEST_CODE_SCAN_CARD)
+        } else {
+            result.notImplemented()
+        }
+        /*
         if (call.method == "getPlatformVersion") {
             result.success("Android ${android.os.Build.VERSION.RELEASE}")
         } else {
             result.notImplemented()
         }
+        */
     }
 }
