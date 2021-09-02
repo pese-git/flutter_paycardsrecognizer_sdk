@@ -123,7 +123,7 @@ class FlutterPaycardsrecognizerSdkPlugin : FlutterPlugin,
             return
         }
         mResult = result
-        if (call.method.equals("startRecognizer")) {
+        if (call.method.equals("scanCard")) {
             val scanIntent = Intent(activity, ScanCardActivity::class.java)
             activity.startActivityForResult(scanIntent, REQUEST_CODE_SCAN_CARD)
         } else {
