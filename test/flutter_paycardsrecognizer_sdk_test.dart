@@ -5,11 +5,23 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const MethodChannel channel = MethodChannel('flutter_paycardsrecognizer_sdk');
 
+  final PayCardInfo payCardInfo = PayCardInfo(
+    cardHolderName: 'Personal Name',
+    cardNumber: '1111222233334444',
+    expiryMonth: '12',
+    expiryYear: '24',
+  );
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '42';
+      return {
+        'cardHolderName': 'Personal Name',
+        'cardNumber': '1111222233334444',
+        'expiryMonth': '12',
+        'expiryYear': '24',
+      };
     });
   });
 
@@ -17,7 +29,8 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await FlutterPayCardsRecognizerSdk.platformVersion, '42');
+  test('scanCard', () async {
+    expect(await FlutterPayCardsRecognizerSdk.newInstance().scanCard(),
+        payCardInfo);
   });
 }

@@ -34,6 +34,23 @@ class PayCardInfo {
   String toString() {
     return 'PayCardInfo{cardHolderName: $cardHolderName, cardNumber: $cardNumber, expiryMonth: $expiryMonth, expiryYear: $expiryYear}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PayCardInfo &&
+          runtimeType == other.runtimeType &&
+          cardHolderName == other.cardHolderName &&
+          cardNumber == other.cardNumber &&
+          expiryMonth == other.expiryMonth &&
+          expiryYear == other.expiryYear;
+
+  @override
+  int get hashCode =>
+      cardHolderName.hashCode ^
+      cardNumber.hashCode ^
+      expiryMonth.hashCode ^
+      expiryYear.hashCode;
 }
 
 class FlutterPayCardsRecognizerSdk {
