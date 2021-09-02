@@ -1,7 +1,7 @@
 name: flutter_paycardsrecognizer_sdk
 description: Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.
 version: 0.0.1
-homepage:
+homepage: https://github.com/pese-git/flutter_paycardsrecognizer_sdk
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

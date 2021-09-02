@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/pese-git/flutter_paycardsrecognizer_sdk'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Sergey Penkovsky' => 'sergey.penkovsky@gmail.com' }
   s.source           = { :path => '.' }
