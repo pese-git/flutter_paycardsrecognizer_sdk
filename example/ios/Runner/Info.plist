@@ -41,5 +41,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSCameraUsageDescription</key>
+    <string>APPNAME requires access to your phone’s camera.</string>
 </dict>
 </plist>

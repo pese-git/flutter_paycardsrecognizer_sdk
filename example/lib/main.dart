@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await FlutterPaycardsrecognizerSdk.newInstance().scanCard();
+          await FlutterPayCardsRecognizerSdk.newInstance().scanCard();
     } on PlatformException {
       //platformVersion = 'Failed to get platform version.';
     }

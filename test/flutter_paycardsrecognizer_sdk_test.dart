@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_paycardsrecognizer_sdk/flutter_paycardsrecognizer_sdk.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   const MethodChannel channel = MethodChannel('flutter_paycardsrecognizer_sdk');
@@ -18,6 +18,6 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    expect(await FlutterPaycardsrecognizerSdk.platformVersion, '42');
+    expect(await FlutterPayCardsRecognizerSdk.platformVersion, '42');
   });
 }
