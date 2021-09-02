@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Map<dynamic, dynamic>? _platformVersion;
+  PayCardInfo? _payCardInfo;
 
   @override
   void initState() {
@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    Map<dynamic, dynamic>? platformVersion;
+    PayCardInfo? platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _payCardInfo = platformVersion;
     });
   }
 
@@ -54,7 +54,7 @@ class _MyAppState extends State<MyApp> {
         body: Center(
             child: Column(
           children: [
-            Text('Running on: ${_platformVersion?.toString() ?? 'NONE'}\n'),
+            Text('Running on: ${_payCardInfo?.toString() ?? 'NONE'}\n'),
             ElevatedButton(
               onPressed: () {
                 initPlatformState();
