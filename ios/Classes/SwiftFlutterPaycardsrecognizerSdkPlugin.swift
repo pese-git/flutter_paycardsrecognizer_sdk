@@ -3,8 +3,8 @@ import UIKit
 import PayCardsRecognizer
 
 public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, PayCardsRecognizerPlatformDelegate {
-  var recognizer: PayCardsRecognizer!
-  var _result: FlutterResult!
+  var recognizer: PayCardsRecognizer?
+  var _result: FlutterResult?
 
   var _viewController: UIViewController
 
@@ -32,28 +32,27 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, P
         return
     }
     self._result = result
-    self.recognizer = PayCardsRecognizer(delegate: self, resultMode: .sync, container: self._viewController.view, frameColor: .green)
-    self.recognizer.startCamera()
+    self.recognizer = PayCardsRecognizer(delegate: self, resultMode: .async, container: self._viewController.view, frameColor: .green)
+    NSLog("Strart recognized card")
+    self.recognizer?.startCamera()
   }
 
   // PayCardsRecognizerPlatformDelegate
 
-  public func payCardsRecognizer(_ payCardsRecognizer: PayCardsRecognizer, didRecognize recognizeResult: PayCardsRecognizerResult) {
-/*
-  	print(recognizeResult.recognizedNumber) // Card number
-  	print(recognizeResult.recognizedHolderName) // Card holder
-  	print(recognizeResult.recognizedExpireDateMonth) // Expire month
-  	print(recognizeResult.recognizedExpireDateYear) // Expire year
-*/
+    public func payCardsRecognizer(_ payCardsRecognizer: PayCardsRecognizer, didRecognize recognizeResult: PayCardsRecognizerResult) {
+    NSLog("Parse card data")
   	let cardDict: [String: Any?] = ["cardHolderName": recognizeResult.recognizedHolderName,
                             "cardNumber": recognizeResult.recognizedNumber,
                             "expiryMonth": recognizeResult.recognizedExpireDateMonth,
                             "expiryYear": recognizeResult.recognizedExpireDateYear]
 
 
-    self._result(cardDict)
+    NSLog("Send card data")
+    self._result?(cardDict)
 
-  	self.recognizer.stopCamera()
+    NSLog("Finish recognized card")
+  	self.recognizer?.stopCamera()
   	self._result = nil
   }
+    
 }
