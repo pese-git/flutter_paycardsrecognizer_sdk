@@ -8,6 +8,8 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, P
 
   var _viewController: UIViewController
 
+  private var backButton: UIButton!
+    
   init(viewController: UIViewController) {
     self._viewController = viewController
   }
@@ -17,6 +19,8 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, P
     let viewController: UIViewController = (UIApplication.shared.delegate?.window??.rootViewController)!
 
     let instance = SwiftFlutterPaycardsrecognizerSdkPlugin(viewController: viewController)
+    
+    
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -34,14 +38,23 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, P
     self._result = result
     self.recognizer = PayCardsRecognizer(delegate: self, resultMode: .async, container: self._viewController.view, frameColor: .green)
     NSLog("Strart recognized card")
+    
     self.recognizer?.startCamera()
+  
+    initBackButton()
+    _viewController.view.addSubview(backButton)
+    _viewController.view.bringSubviewToFront(backButton)
   }
-
+    
+    @objc func goBack(){
+        self.recognizer?.stopCamera()
+        backButton.removeFromSuperview()
+        self._result = nil
+    }
   // PayCardsRecognizerPlatformDelegate
-
     public func payCardsRecognizer(_ payCardsRecognizer: PayCardsRecognizer, didRecognize recognizeResult: PayCardsRecognizerResult) {
     NSLog("Parse card data")
-  	let cardDict: [String: Any?] = ["cardHolderName": recognizeResult.recognizedHolderName,
+      let cardDict: [String: Any?] = ["cardHolderName": recognizeResult.recognizedHolderName,
                             "cardNumber": recognizeResult.recognizedNumber,
                             "expiryMonth": recognizeResult.recognizedExpireDateMonth,
                             "expiryYear": recognizeResult.recognizedExpireDateYear]
@@ -51,8 +64,18 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin: NSObject, FlutterPlugin, P
     self._result?(cardDict)
 
     NSLog("Finish recognized card")
-  	self.recognizer?.stopCamera()
-  	self._result = nil
+      self.recognizer?.stopCamera()
+      self._result = nil
   }
+
+    private func initBackButton(){
+        if backButton == nil {
+            backButton = UIButton(frame: CGRect.init(x: 0, y: 16, width: 100, height: 100))
+            backButton.backgroundColor = .clear
+            backButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 30)
+            backButton.setTitle("✕", for: .normal)
+            backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        }
+    }
     
 }
