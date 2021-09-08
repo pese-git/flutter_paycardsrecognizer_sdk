@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Added back button for IOS
+
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Published first version
