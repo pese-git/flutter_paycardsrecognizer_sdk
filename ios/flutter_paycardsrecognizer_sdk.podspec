@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_paycardsrecognizer_sdk'
-  s.version          = '0.0.1'
+  s.version          = '0.0.3'
   s.summary          = 'Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.'
   s.description      = <<-DESC
 Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.
