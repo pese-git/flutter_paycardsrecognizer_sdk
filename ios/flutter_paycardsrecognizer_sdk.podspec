@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_paycardsrecognizer_sdk'
-  s.version          = '0.0.3'
+  s.version          = '0.0.4'
   s.summary          = 'Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.'
   s.description      = <<-DESC
 Flutter library for automatic recognition of bank card data using built-in camera on Android/IOS devices.
@@ -15,9 +15,11 @@ Flutter library for automatic recognition of bank card data using built-in camer
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.platform = :ios, '9.0'
-  s.vendored_frameworks = 'PayCardsRecognizer.framework'
+  s.dependency 'PayCardsRecognizer'
+  s.static_framework = true
+  s.platform = :ios, '13.0'
+  #s.vendored_frameworks = 'PayCardsRecognizer.framework'
   # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64 i386' }
   s.swift_version = '5.0'
 end
