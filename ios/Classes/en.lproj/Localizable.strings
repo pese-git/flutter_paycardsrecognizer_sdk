@@ -1,0 +1,10 @@
+/* 
+  LocalizedStrings.strings
+  Pods
+  Created by Alexey Popkov on 24.12.2021.
+*/
+
+"alert_request_permissions_title" = "Camera";
+"alert_request_permissions_message" = "Allow the app to access the camera to scan card numbers";
+"alert_request_permissions_ok_button_title" = "OK";
+"alert_request_permissions_cancel_button_title" = "Cancel";

@@ -14,6 +14,7 @@ Flutter library for automatic recognition of bank card data using built-in camer
   s.author           = { 'Sergey Penkovsky' => 'sergey.penkovsky@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
+  s.resource = 'Classes/**/*.lproj/*.strings'
   s.dependency 'Flutter'
   s.dependency 'PayCardsRecognizer'
   s.static_framework = true

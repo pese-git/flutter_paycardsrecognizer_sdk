@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import AVFoundation
 import PayCardsRecognizer
 
 fileprivate let flutterChannelName = "flutter_paycardsrecognizer_sdk"
@@ -90,6 +91,7 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        requestCameraPermissionsIfNeeded()
         setupUI()
     }
     
@@ -101,14 +103,15 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         recognizer.stopCamera()
-        
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateFrames()
     }
+
     private func setupUI() {
+        view.backgroundColor = UIColor.black
         view.addSubview(cameraView)
         view.addSubview(backButton)
     }
@@ -140,5 +143,61 @@ extension RecognizerVC {
                                         "expiryMonth": result.recognizedExpireDateMonth,
                                         "expiryYear": result.recognizedExpireDateYear]
         delegate?.recognizerVC(self, didRecognize: cardInfo)
+    }
+}
+
+// MARK: - Request camera permissions
+extension RecognizerVC {
+    private func requestCameraPermissionsIfNeeded() {
+        AVCaptureDevice.requestAccess(for: .video) { [weak self] success in
+            if success == false {
+                guard let self = self else { return }
+                let title = self.localized("alert_request_permissions_title",
+                                           comment: "Camera")
+                let message = self.localized("alert_request_permissions_message",
+                                             comment: "Allow the app to access the camera to scan card numbers")
+                let okTitle = self.localized("alert_request_permissions_ok_button_title",
+                                             comment: "OK")
+                let cancelTitle = self.localized("alert_request_permissions_cancel_button_title",
+                                                 comment: "Cancel")
+                let alert = UIAlertController(title: title,
+                                              message: message,
+                                              preferredStyle: .alert)
+                let ok = UIAlertAction(title: okTitle, style: .default) { _ in
+                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                    self.delegate?.dismissRecognizerVC(self)
+                }
+                
+                let cancel = UIAlertAction(title: cancelTitle, style: .cancel) { [weak self]  _ in
+                    guard let self = self else { return }
+                    self.delegate?.dismissRecognizerVC(self)
+                }
+                
+                alert.addAction(ok)
+                alert.addAction(cancel)
+                
+                self.present(alert, animated: true)
+            }
+        }
+    }
+}
+
+// MARK: - Localization
+extension RecognizerVC {
+    private func localized(_ key: String, comment: String) -> String {
+        return NSLocalizedString(key,
+                                 tableName: "Localizable",
+                                 bundle: getBundle(),
+                                 comment: comment)
+    }
+    
+    private func getBundle() -> Bundle {
+        let bundle = Bundle(for: RecognizerVC.self)
+        
+        if let path = bundle.path(forResource: Locale.current.identifier, ofType: "lproj") {
+            return Bundle(path: path) ?? bundle
+        } else {
+            return bundle
+        }
     }
 }
