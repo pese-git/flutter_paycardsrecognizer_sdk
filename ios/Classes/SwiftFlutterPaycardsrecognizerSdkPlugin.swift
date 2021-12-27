@@ -11,8 +11,6 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
     FlutterPlugin,
     RecognizerVCDelegate {
     
-    var vc: UIViewController?
-    
     var _flutterResultHandler: FlutterResult?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -47,7 +45,6 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         let vc = RecognizerVC(nibName: nil, bundle: nil);
         vc.modalPresentationStyle = .fullScreen
         vc.delegate = self
-        self.vc = vc
         
         rootVC.present(vc, animated: true, completion: nil)
     }
@@ -56,14 +53,14 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         _flutterResultHandler?(result)
         _flutterResultHandler = nil
         DispatchQueue.main.async {
-            self.vc?.dismiss(animated: true, completion: nil)
+            sender.dismiss(animated: true, completion: nil)
         }
     }
     
     func dismissRecognizerVC(_ sender: RecognizerVC) {
         _flutterResultHandler = nil
         DispatchQueue.main.async {
-            self.vc?.dismiss(animated: true, completion: nil)
+            sender.dismiss(animated: true, completion: nil)
         }
     }
 }
