@@ -165,7 +165,6 @@ extension RecognizerVC {
                                               preferredStyle: .alert)
                 let ok = UIAlertAction(title: okTitle, style: .default) { _ in
                     UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-                    self.delegate?.dismissRecognizerVC(self)
                 }
                 
                 let cancel = UIAlertAction(title: cancelTitle, style: .cancel) { [weak self]  _ in
