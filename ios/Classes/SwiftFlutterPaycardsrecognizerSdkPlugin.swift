@@ -5,6 +5,8 @@ import PayCardsRecognizer
 
 fileprivate let flutterChannelName = "flutter_paycardsrecognizer_sdk"
 fileprivate let flutterMethodName = "scanCard"
+fileprivate let alreadyActiveErrorCode = "ALREADY_ACTIVE"
+fileprivate let alreadyActiveErrorMessage = "Scan card is already active"
 
 public class SwiftFlutterPaycardsrecognizerSdkPlugin:
     NSObject,
@@ -27,8 +29,8 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         }
         
         if (self._flutterResultHandler != nil) {
-            result(FlutterError(code: "ALREADY_ACTIVE",
-                                message: "Scan card is already active",
+            result(FlutterError(code: alreadyActiveErrorCode,
+                                message: alreadyActiveErrorMessage,
                                 details: nil))
             return
         }
@@ -43,10 +45,11 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
     func showRecognizerVC() {
         let rootVC: UIViewController = (UIApplication.shared.delegate?.window??.rootViewController)!
         let vc = RecognizerVC(nibName: nil, bundle: nil);
-        vc.modalPresentationStyle = .fullScreen
         vc.delegate = self
         
-        rootVC.present(vc, animated: true, completion: nil)
+        let nc = UINavigationController(rootViewController: vc)
+        nc.modalPresentationStyle = .fullScreen
+        rootVC.present(nc, animated: true, completion: nil)
     }
     
     func recognizerVC(_ sender: RecognizerVC, didRecognize result: [String : Any?]) {
@@ -73,16 +76,23 @@ protocol RecognizerVCDelegate: AnyObject {
 
 // MARK: - RecognizerVC
 class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
+    static let padding = 16.0
+    static let doublePadding = 16.0
+    static let textLabelFontSize = 19.0
+    static let closeSignFontSize = 30.0
     
-    lazy var recognizer = PayCardsRecognizer(delegate: self,
-                                             // `async` needed
-                                             // https://github.com/faceterteam/PayCards_iOS/issues/23
-                                             resultMode: .async,
-                                             container: cameraView,
-                                             frameColor: .green)
+    private lazy var recognizer = PayCardsRecognizer(delegate: self,
+                                                     // `async` needed
+                                                     // https://github.com/faceterteam/PayCards_iOS/issues/23
+                                                     resultMode: .async,
+                                                     container: cameraView,
+                                                     frameColor: .green)
     
-    lazy var backButton = createBackButton()
-    lazy var cameraView = UIView(frame: CGRect.zero)
+    
+    
+    private lazy var backButton = createBackButton()
+    private lazy var cameraView = UIView(frame: .zero)
+    private lazy var textLabel = UILabel(frame: .zero)
     
     weak var delegate: RecognizerVCDelegate?
     
@@ -106,39 +116,88 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
         super.viewDidLayoutSubviews()
         updateFrames()
     }
-
+    
     private func setupUI() {
+        setupNavigationBar()
         view.backgroundColor = UIColor.black
         view.addSubview(cameraView)
-        view.addSubview(backButton)
+
+        if isPortrait {
+            textLabel.textAlignment = .center
+            view.addSubview(textLabel)
+            textLabel.text = self.localized("recognizer_screen_hint_position_card",
+                                            comment: "Position your card in the frame.")
+            textLabel.numberOfLines = 0
+            textLabel.textColor = .white
+            textLabel.font = UIFont.systemFont(ofSize: Self.textLabelFontSize,
+                                               weight: .semibold)
+        }
+    }
+    
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.isTranslucent = true
+        navigationController?.view.backgroundColor = .clear
+
+        navigationItem.setLeftBarButton(UIBarButtonItem(customView: backButton),animated: false)
+    }
+    
+    private var isPortrait: Bool {
+        return view.bounds.width < view.bounds.height
     }
     
     private func updateFrames() {
-        cameraView.frame = view.bounds
-        backButton.frame = CGRect(x: 0, y: 16.0, width: 100.0, height: 100.0)
+        if isPortrait {
+            let sideSize = view.bounds.width
+            let top = view.safeAreaInsets.top
+            cameraView.frame = CGRect(x: 0.0,
+                                      y: top,
+                                      width: sideSize,
+                                      height: sideSize)
+            let textLabelY = top + sideSize + Self.padding
+            textLabel.frame = CGRect(x: Self.padding,
+                                     y: textLabelY,
+                                     width: sideSize - Self.doublePadding,
+                                     height: view.bounds.height - Self.doublePadding - textLabelY)
+        } else {
+            let sideSize = min(view.bounds.width, view.bounds.height)
+            cameraView.frame = CGRect(x: round(0.5 * abs(view.bounds.width - sideSize)),
+                                      y: round(0.5 * abs(view.bounds.height - sideSize)),
+                                      width: sideSize,
+                                      height: sideSize)
+        }
     }
+
     
     @objc func goBack(){
         delegate?.dismissRecognizerVC(self)
     }
     
     private func createBackButton() -> UIButton {
-        let result = UIButton(frame: CGRect.zero)
+        let result = UIButton(frame: CGRect(x: 0, y: 0.0,
+                                            width: Self.doublePadding,
+                                            height: Self.doublePadding))
         result.backgroundColor = .clear
-        result.titleLabel?.font = UIFont.boldSystemFont(ofSize: 30)
+        result.titleLabel?.font = UIFont.boldSystemFont(ofSize: Self.closeSignFontSize)
         result.setTitle("✕", for: .normal)
         result.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        result.setTitleColor(.white, for: .normal)
         return result
     }
+    
+
 }
 
 // MARK: - PayCardsRecognizerPlatformDelegate
 extension RecognizerVC {
     public func payCardsRecognizer(_ payCardsRecognizer: PayCardsRecognizer, didRecognize result: PayCardsRecognizerResult) {
+
         let cardInfo: [String: Any?] = ["cardHolderName": result.recognizedHolderName,
                                         "cardNumber": result.recognizedNumber,
                                         "expiryMonth": result.recognizedExpireDateMonth,
                                         "expiryYear": result.recognizedExpireDateYear]
+        
         delegate?.recognizerVC(self, didRecognize: cardInfo)
     }
 }

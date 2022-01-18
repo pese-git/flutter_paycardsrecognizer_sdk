@@ -4,6 +4,7 @@
   Created by Alexey Popkov on 24.12.2021.
 */
 
+"recognizer_screen_hint_position_card" = "Position your card in the frame.";
 "alert_request_permissions_title" = "Camera";
 "alert_request_permissions_message" = "Allow the app to access the camera to scan card numbers";
 "alert_request_permissions_ok_button_title" = "OK";

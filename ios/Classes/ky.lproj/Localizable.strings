@@ -4,6 +4,7 @@
   Created by Alexey Popkov on 24.12.2021.
 */
 
+"recognizer_screen_hint_position_card" = "Картаны кадрга коюңуз.";
 "alert_request_permissions_title" = "Камера";
 "alert_request_permissions_message" = "Колдонмого карта номерлерин сканерлөө үчүн камерага кирүүгө уруксат бериңиз";
 "alert_request_permissions_ok_button_title" = "OK";
