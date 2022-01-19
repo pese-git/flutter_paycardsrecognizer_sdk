@@ -30,8 +30,6 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
             return
         }
         
-        
-        
         if (self._flutterResultHandler != nil) {
             result(FlutterError(code: alreadyActiveErrorCode,
                                 message: alreadyActiveErrorMessage,
@@ -41,10 +39,12 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         
         self._flutterResultHandler = result
         
-        var languageCode: String?
-        
+        let languageCode: String?
+
         if let argumentsDictionary = call.arguments as? Dictionary<String, Any> {
             languageCode = argumentsDictionary["languageCode"] as? String
+        } else {
+            languageCode = nil
         }
         
         DispatchQueue.main.async {

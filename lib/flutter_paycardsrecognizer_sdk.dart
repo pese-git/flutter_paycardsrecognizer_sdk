@@ -60,8 +60,16 @@ class FlutterPayCardsRecognizerSdk {
   final MethodChannel _channel =
       const MethodChannel('flutter_paycardsrecognizer_sdk');
 
-  Future<PayCardInfo> scanCard(String? languageCode) {
-    return _channel.invokeMethod('scanCard').then(
+  Future<PayCardInfo> scanCard({String? languageCode}) {
+    late final Map<String, dynamic>? arguments;
+
+    if (languageCode == null) {
+      arguments = null;
+    } else {
+      arguments = {'languageCode': languageCode};
+    }
+
+    return _channel.invokeMethod('scanCard', arguments).then(
           (value) => PayCardInfo(
             cardHolderName: value['cardHolderName'],
             cardNumber: value['cardNumber'],
