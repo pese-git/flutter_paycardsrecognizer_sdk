@@ -106,11 +106,17 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     private lazy var backButton = createBackButton()
     private lazy var cameraView = UIView(frame: .zero)
     private lazy var textLabel = UILabel(frame: .zero)
+    // needed for case if UIViewControllerBasedStatusBarAppearance is NO in plist
+    private let statusBarStyle = UIApplication.shared.statusBarStyle
     
     weak var delegate: RecognizerVCDelegate?
     
     func setPreferredLanguageCode( languageCode: String) {
         preferredLanguageCode = languageCode
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
     }
     
     override func viewDidLoad() {
@@ -121,11 +127,17 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // for case if UIViewControllerBasedStatusBarAppearance is NO in plist
+        UIApplication.shared.setStatusBarStyle(UIStatusBarStyle.lightContent,
+                                               animated: animated)
         recognizer.startCamera()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        // for case if UIViewControllerBasedStatusBarAppearance is NO in plist
+        UIApplication.shared.setStatusBarStyle(statusBarStyle,
+                                               animated: false)
         recognizer.stopCamera()
     }
     
