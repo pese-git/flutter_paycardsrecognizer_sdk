@@ -7,6 +7,8 @@ fileprivate let flutterChannelName = "flutter_paycardsrecognizer_sdk"
 fileprivate let flutterMethodName = "scanCard"
 fileprivate let alreadyActiveErrorCode = "ALREADY_ACTIVE"
 fileprivate let alreadyActiveErrorMessage = "Scan card is already active"
+fileprivate let libName = "flutter_paycardsrecognizer_sdk"
+fileprivate let localizationTableName = "Localizable"
 
 public class SwiftFlutterPaycardsrecognizerSdkPlugin:
     NSObject,
@@ -28,6 +30,8 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
             return
         }
         
+        
+        
         if (self._flutterResultHandler != nil) {
             result(FlutterError(code: alreadyActiveErrorCode,
                                 message: alreadyActiveErrorMessage,
@@ -37,14 +41,23 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         
         self._flutterResultHandler = result
         
+        var languageCode: String?
+        
+        if let argumentsDictionary = call.arguments as? Dictionary<String, Any> {
+            languageCode = argumentsDictionary["languageCode"] as? String
+        }
+        
         DispatchQueue.main.async {
-            self.showRecognizerVC()
+            self.showRecognizerVC(languageCode: languageCode)
         }
     }
     
-    func showRecognizerVC() {
+    func showRecognizerVC(languageCode: String?) {
         let rootVC: UIViewController = (UIApplication.shared.delegate?.window??.rootViewController)!
         let vc = RecognizerVC(nibName: nil, bundle: nil);
+        if let languageCode = languageCode {
+            vc.setPreferredLanguageCode(languageCode: languageCode)
+        }
         vc.delegate = self
         
         let nc = UINavigationController(rootViewController: vc)
@@ -88,13 +101,17 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
                                                      container: cameraView,
                                                      frameColor: .green)
     
-    
-    
+    private var preferredLanguageCode: String?
+    private lazy var localizatioBundle = findBundle()
     private lazy var backButton = createBackButton()
     private lazy var cameraView = UIView(frame: .zero)
     private lazy var textLabel = UILabel(frame: .zero)
     
     weak var delegate: RecognizerVCDelegate?
+    
+    func setPreferredLanguageCode( languageCode: String) {
+        preferredLanguageCode = languageCode
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -241,17 +258,26 @@ extension RecognizerVC {
 extension RecognizerVC {
     private func localized(_ key: String, comment: String) -> String {
         return NSLocalizedString(key,
-                                 tableName: "Localizable",
-                                 bundle: getBundle(),
+                                 tableName: localizationTableName,
+                                 bundle: localizatioBundle,
                                  comment: comment)
     }
     
-    private func getBundle() -> Bundle {
+    private func findBundle() -> Bundle {
         let bundle = Bundle(for: RecognizerVC.self)
         
-        if let path = bundle.path(forResource: Locale.current.identifier, ofType: "lproj") {
-            return Bundle(path: path) ?? bundle
-        } else {
+        if let path = bundle.path(forResource: libName, ofType: "bundle") {
+            
+            let libBundle = Bundle(path: path) ?? bundle
+            
+            if let languageCode = preferredLanguageCode {
+                if let resourceBundlePath = libBundle.path(forResource: languageCode, ofType: "lproj") {
+                    return Bundle(path: resourceBundlePath) ?? libBundle
+                }
+            }
+            return libBundle
+        }
+        else {
             return bundle
         }
     }
