@@ -60,9 +60,8 @@ public class SwiftFlutterPaycardsrecognizerSdkPlugin:
         }
         vc.delegate = self
         
-        let nc = UINavigationController(rootViewController: vc)
-        nc.modalPresentationStyle = .fullScreen
-        rootVC.present(nc, animated: true, completion: nil)
+        vc.modalPresentationStyle = .fullScreen
+        rootVC.present(vc, animated: true, completion: nil)
     }
     
     func recognizerVC(_ sender: RecognizerVC, didRecognize result: [String : Any?]) {
@@ -87,25 +86,29 @@ protocol RecognizerVCDelegate: AnyObject {
     func dismissRecognizerVC(_ sender: RecognizerVC)
 }
 
+struct Padding {
+    static let `default` = 8.0
+    static let large = 16.0
+    static let doubleLarge = 16.0
+    static let textLabelFontSize = 19.0
+    static let closeButtonFontSize = 17.0
+}
+
 // MARK: - RecognizerVC
 class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
-    static let padding = 16.0
-    static let doublePadding = 16.0
-    static let textLabelFontSize = 19.0
-    static let closeSignFontSize = 30.0
-    
     private lazy var recognizer = PayCardsRecognizer(delegate: self,
                                                      // `async` needed
                                                      // https://github.com/faceterteam/PayCards_iOS/issues/23
                                                      resultMode: .async,
                                                      container: cameraView,
-                                                     frameColor: .green)
+                                                     frameColor: .clear)
     
     private var preferredLanguageCode: String?
     private lazy var localizatioBundle = findBundle()
-    private lazy var backButton = createBackButton()
     private lazy var cameraView = UIView(frame: .zero)
-    private lazy var textLabel = UILabel(frame: .zero)
+    private lazy var cameraElementsView = CameraElementsView(frame: .zero)
+    private var label: UIView?
+    
     // needed for case if UIViewControllerBasedStatusBarAppearance is NO in plist
     private let statusBarStyle = UIApplication.shared.statusBarStyle
     
@@ -137,7 +140,7 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
         super.viewDidDisappear(animated)
         // for case if UIViewControllerBasedStatusBarAppearance is NO in plist
         UIApplication.shared.setStatusBarStyle(statusBarStyle,
-                                               animated: false)
+                                               animated: animated)
         recognizer.stopCamera()
     }
     
@@ -147,29 +150,20 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     }
     
     private func setupUI() {
-        setupNavigationBar()
         view.backgroundColor = UIColor.black
         view.addSubview(cameraView)
-
-        if isPortrait {
-            textLabel.textAlignment = .center
-            view.addSubview(textLabel)
-            textLabel.text = self.localized("recognizer_screen_hint_position_card",
-                                            comment: "Position your card in the frame.")
-            textLabel.numberOfLines = 0
-            textLabel.textColor = .white
-            textLabel.font = UIFont.systemFont(ofSize: Self.textLabelFontSize,
-                                               weight: .semibold)
+        
+        cameraElementsView.setLabelText(self.localized("recognizer_screen_hint_position_card",
+                                                       comment: "Hold the card inside the frame.\nIt will be read automatically."))
+        cameraElementsView.setBackButtonText(self.localized("recognizer_screen_cancel_button_title",
+                                                            comment: "Cancel"))
+        
+        cameraElementsView.setBackButtonHandler { [weak self] _ in
+            guard let self = self else { return }
+            self.delegate?.dismissRecognizerVC(self)
         }
-    }
-    
-    private func setupNavigationBar() {
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.isTranslucent = true
-        navigationController?.view.backgroundColor = .clear
 
-        navigationItem.setLeftBarButton(UIBarButtonItem(customView: backButton),animated: false)
+        view.addSubview(cameraElementsView)
     }
     
     private var isPortrait: Bool {
@@ -181,41 +175,32 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
             let sideSize = view.bounds.width
             let top = view.safeAreaInsets.top
             cameraView.frame = CGRect(x: 0.0,
-                                      y: top,
+                                      y: round(0.5 * max(view.bounds.height - top - sideSize, top)),
                                       width: sideSize,
                                       height: sideSize)
-            let textLabelY = top + sideSize + Self.padding
-            textLabel.frame = CGRect(x: Self.padding,
-                                     y: textLabelY,
-                                     width: sideSize - Self.doublePadding,
-                                     height: view.bounds.height - Self.doublePadding - textLabelY)
+            cameraElementsView.frame = cameraView.frame
         } else {
             let sideSize = min(view.bounds.width, view.bounds.height)
             cameraView.frame = CGRect(x: round(0.5 * abs(view.bounds.width - sideSize)),
                                       y: round(0.5 * abs(view.bounds.height - sideSize)),
                                       width: sideSize,
                                       height: sideSize)
+            cameraElementsView.frame = cameraView.frame
         }
+        
+        findLabel()?.alpha = 0.0
     }
 
-    
-    @objc func goBack(){
-        delegate?.dismissRecognizerVC(self)
-    }
-    
-    private func createBackButton() -> UIButton {
-        let result = UIButton(frame: CGRect(x: 0, y: 0.0,
-                                            width: Self.doublePadding,
-                                            height: Self.doublePadding))
-        result.backgroundColor = .clear
-        result.titleLabel?.font = UIFont.boldSystemFont(ofSize: Self.closeSignFontSize)
-        result.setTitle("✕", for: .normal)
-        result.addTarget(self, action: #selector(goBack), for: .touchUpInside)
-        result.setTitleColor(.white, for: .normal)
+    private func findLabel() -> UIView? {
+        guard let result = label else {
+            self.label = cameraView.subviews.first?.subviews.first(where: { view in
+                return view as? UIButton != nil
+            })
+            return self.label
+        }
+
         return result
     }
-    
-
 }
 
 // MARK: - PayCardsRecognizerPlatformDelegate
@@ -272,6 +257,7 @@ extension RecognizerVC {
         return NSLocalizedString(key,
                                  tableName: localizationTableName,
                                  bundle: localizatioBundle,
+                                 value: comment,
                                  comment: comment)
     }
     
@@ -292,5 +278,175 @@ extension RecognizerVC {
         else {
             return bundle
         }
+    }
+}
+
+
+// MARK: - CameraContainerView
+class CameraElementsView: UIView {
+    static let cardRatio = 5.5 / 8.5
+    static let cardPadding = 14.0
+    
+    private lazy var cache = Cache()
+    private lazy var frameLimiterLT = UIImageView(image: cache.frameLimiterLT)
+    private lazy var frameLimiterRT = UIImageView(image: cache.frameLimiterRT)
+    private lazy var frameLimiterRB = UIImageView(image: cache.frameLimiterRB)
+    private lazy var frameLimiterLB = UIImageView(image: cache.frameLimiterLB)
+    private lazy var textLabel = UILabel(frame: .zero)
+    private lazy var backButton = createBackButton()
+    
+    private var buttonHandler: ((UIButton) -> Void)?
+    
+    func setLabelText(_ text: String) {
+        textLabel.text = text
+    }
+    
+    func setBackButtonText(_ text: String) {
+        backButton.setTitle(text, for: .normal)
+    }
+    
+    func setBackButtonHandler(_ handler: ((UIButton) -> Void)?) {
+        buttonHandler = handler
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(frameLimiterLT)
+        addSubview(frameLimiterRT)
+        addSubview(frameLimiterRB)
+        addSubview(frameLimiterLB)
+        addSubview(textLabel)
+        addSubview(backButton)
+        
+        configureLabel()
+    }
+    
+    private func configureLabel() {
+        textLabel.textAlignment = .center
+        textLabel.numberOfLines = 0
+        textLabel.textColor = .white
+        textLabel.font = UIFont.systemFont(ofSize: Padding.textLabelFontSize,
+                                           weight: .semibold)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let cardWidth = bounds.width - 2.0 * Self.cardPadding
+        let cardHeight = round(Self.cardRatio * cardWidth)
+        
+        let topLimitersY = round(0.5 * (bounds.height - cardHeight))
+        let bottomLimitersY = topLimitersY + cardHeight - Cache.frameLimiterSize.height
+        let limitersLeftX = bounds.minX + Self.cardPadding
+        let limitersRightX = bounds.maxX - Self.cardPadding - Cache.frameLimiterSize.width
+        
+        frameLimiterLT.frame = CGRect(origin: CGPoint(x: limitersLeftX,
+                                                      y: topLimitersY),
+                                      size: Cache.frameLimiterSize)
+        frameLimiterRT.frame = CGRect(origin: CGPoint(x: limitersRightX,
+                                                      y: topLimitersY),
+                                      size: Cache.frameLimiterSize)
+        
+        frameLimiterRB.frame = CGRect(origin: CGPoint(x: limitersRightX,
+                                                      y: bottomLimitersY),
+                                      size: Cache.frameLimiterSize)
+        
+        frameLimiterLB.frame = CGRect(origin: CGPoint(x: limitersLeftX,
+                                                      y: bottomLimitersY),
+                                      size: Cache.frameLimiterSize)
+        
+        textLabel.frame = CGRect(x: frameLimiterLT.frame.minX + Padding.default,
+                                 y: frameLimiterRT.frame.minY + Padding.default,
+                                 width: cardWidth - 2.0 * Padding.default,
+                                 height: cardHeight - 2.0 * Padding.default)
+        
+        let backButtonSize = backButton.sizeThatFits(bounds.size)
+        
+        backButton.frame = CGRect(origin: CGPoint(x: bounds.minX,
+                                                  y: bounds.maxY - backButtonSize.height),
+                                  size: backButtonSize)
+    }
+    
+    private func createBackButton() -> UIButton {
+        let result = UIButton(frame: CGRect(x: 0, y: 0.0,
+                                            width: Padding.doubleLarge,
+                                            height: Padding.doubleLarge))
+        result.backgroundColor = .clear
+        result.contentEdgeInsets = UIEdgeInsets(top: Padding.default,
+                                                left: Padding.default,
+                                                bottom: Padding.default,
+                                                right: Padding.default)
+        result.titleLabel?.font = UIFont.boldSystemFont(ofSize: Padding.closeButtonFontSize)
+
+        result.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        result.setTitleColor(.white, for: .normal)
+        return result
+    }
+    
+    @objc func goBack(){
+        buttonHandler?(backButton)
+    }
+}
+
+// MARK: - Cache
+extension CameraElementsView {
+    class Cache {
+        static let frameLimiterSize = CGSize(width: 50.0, height: 50.0)
+        static let frameLimiterCornerRadus = 5.0
+        static let frameLimiterStrokeWidth = 5.0
+        
+        lazy var frameLimiterLT = ImageFactory.drawTopLeftFrameLimiter(size: Self.frameLimiterSize,
+                                                                       cornerRadus: Self.frameLimiterCornerRadus,
+                                                                       strokeColor: .yellow,
+                                                                       strokeWidth: Self.frameLimiterStrokeWidth)
+        lazy var frameLimiterRT =  ImageFactory.imageWithOrientation(source: frameLimiterLT,
+                                                                     orientation: .right)
+        lazy var frameLimiterLB =  ImageFactory.imageWithOrientation(source: frameLimiterLT,
+                                                                     orientation: .downMirrored)
+        lazy var frameLimiterRB = ImageFactory.imageWithOrientation(source: frameLimiterLT,
+                                                                    orientation: .rightMirrored)
+    }
+}
+
+// MARK: - ImageFactory
+struct ImageFactory {
+    static func drawTopLeftFrameLimiter(size: CGSize,
+                                        cornerRadus: CGFloat,
+                                        strokeColor: UIColor,
+                                        strokeWidth: CGFloat) -> UIImage
+    {
+        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        
+        let ctx = UIGraphicsGetCurrentContext()!
+        
+        let strokeW = strokeWidth
+        
+        ctx.addArc(center: CGPoint(x: cornerRadus + strokeW, y: cornerRadus + strokeW),
+                   radius: cornerRadus,
+                   startAngle: .pi,
+                   endAngle: 1.5 * .pi,
+                   clockwise: false)
+        
+        ctx.addLine(to: CGPoint(x: size.width - strokeW, y: strokeW))
+        
+        ctx.move(to: CGPoint(x: strokeW, y: size.height))
+        ctx.addLine(to: CGPoint(x: strokeW, y: cornerRadus + strokeW))
+        
+        ctx.setStrokeColor(strokeColor.cgColor)
+        ctx.setLineWidth(strokeWidth)
+        ctx.strokePath()
+        
+        return UIGraphicsGetImageFromCurrentImageContext()!
+    }
+    
+    static func imageWithOrientation(source: UIImage, orientation: UIImage.Orientation) -> UIImage {
+        return UIImage(cgImage: source.cgImage!, scale: source.scale, orientation: orientation)
     }
 }
