@@ -222,28 +222,26 @@ extension RecognizerVC {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] success in
             if success == false {
                 guard let self = self else { return }
-                let title = self.localized("alert_request_permissions_title",
-                                           comment: "Camera")
                 let message = self.localized("alert_request_permissions_message",
                                              comment: "Allow the app to access the camera to scan card numbers")
-                let okTitle = self.localized("alert_request_permissions_ok_button_title",
-                                             comment: "OK")
+                let settingsTitle = self.localized("alert_request_permissions_settings_button_title",
+                                             comment: "Settings")
                 let cancelTitle = self.localized("alert_request_permissions_cancel_button_title",
-                                                 comment: "Cancel")
-                let alert = UIAlertController(title: title,
-                                              message: message,
+                                                 comment: "OK")
+                let alert = UIAlertController(title: message,
+                                              message: nil,
                                               preferredStyle: .alert)
-                let ok = UIAlertAction(title: okTitle, style: .default) { _ in
+                let settings = UIAlertAction(title: settingsTitle, style: .default) { _ in
                     UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
                 }
                 
-                let cancel = UIAlertAction(title: cancelTitle, style: .cancel) { [weak self]  _ in
+                let cancel = UIAlertAction(title: cancelTitle, style: .default) { [weak self]  _ in
                     guard let self = self else { return }
                     self.delegate?.dismissRecognizerVC(self)
                 }
                 
-                alert.addAction(ok)
                 alert.addAction(cancel)
+                alert.addAction(settings)
                 
                 self.present(alert, animated: true)
             }

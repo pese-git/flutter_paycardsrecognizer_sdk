@@ -6,8 +6,7 @@
 
 "recognizer_screen_hint_position_card" = "Hold the card inside the frame.\nIt will be read automatically.";
 "recognizer_screen_cancel_button_title" = "Cancel";
-"alert_request_permissions_title" = "Camera";
-"alert_request_permissions_message" = "Allow the app to access the camera to scan card numbers";
-"alert_request_permissions_ok_button_title" = "OK";
-"alert_request_permissions_cancel_button_title" = "Cancel";
+"alert_request_permissions_message" = "Camera access required. You can allow access in the device settings.";
+"alert_request_permissions_settings_button_title" = "Settings";
+"alert_request_permissions_cancel_button_title" = "OK";
 

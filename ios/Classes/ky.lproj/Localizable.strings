@@ -6,7 +6,6 @@
 
 "recognizer_screen_hint_position_card" = "Картаны алкактын ичинде кармаңыз.\nАл автоматтык түрдө окулат.";
 "recognizer_screen_cancel_button_title" = "Жокко чыгаруу";
-"alert_request_permissions_title" = "Камера";
-"alert_request_permissions_message" = "Колдонмого карта номерлерин сканерлөө үчүн камерага кирүүгө уруксат бериңиз";
-"alert_request_permissions_ok_button_title" = "OK";
-"alert_request_permissions_cancel_button_title" = "Жокко чыгаруу";
+"alert_request_permissions_message" = "Камерага кирүү керек. Түзмөктүн жөндөөлөрүнөн кирүүгө уруксат бере аласыз.";
+"alert_request_permissions_settings_button_title" = "Орнотуулар";
+"alert_request_permissions_cancel_button_title" = "OK";
