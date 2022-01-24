@@ -124,7 +124,6 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        requestCameraPermissionsIfNeeded()
         setupUI()
     }
     
@@ -133,7 +132,7 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
         // for case if UIViewControllerBasedStatusBarAppearance is NO in plist
         UIApplication.shared.setStatusBarStyle(UIStatusBarStyle.lightContent,
                                                animated: animated)
-        recognizer.startCamera()
+        startCameraIfNeeded()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -141,7 +140,8 @@ class RecognizerVC: UIViewController, PayCardsRecognizerPlatformDelegate {
         // for case if UIViewControllerBasedStatusBarAppearance is NO in plist
         UIApplication.shared.setStatusBarStyle(statusBarStyle,
                                                animated: animated)
-        recognizer.stopCamera()
+        
+        stopCameraIfNeeded()
     }
     
     override func viewDidLayoutSubviews() {
@@ -218,35 +218,71 @@ extension RecognizerVC {
 
 // MARK: - Request camera permissions
 extension RecognizerVC {
-    private func requestCameraPermissionsIfNeeded() {
-        AVCaptureDevice.requestAccess(for: .video) { [weak self] success in
-            if success == false {
-                guard let self = self else { return }
-                let message = self.localized("alert_request_permissions_message",
-                                             comment: "Allow the app to access the camera to scan card numbers")
-                let settingsTitle = self.localized("alert_request_permissions_settings_button_title",
-                                             comment: "Settings")
-                let cancelTitle = self.localized("alert_request_permissions_cancel_button_title",
-                                                 comment: "OK")
-                let alert = UIAlertController(title: message,
-                                              message: nil,
-                                              preferredStyle: .alert)
-                let settings = UIAlertAction(title: settingsTitle, style: .default) { _ in
-                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+    private func showRequestCameraPermissionsAlert() {
+        let message = self.localized("alert_request_permissions_message",
+                                     comment: "Allow the app to access the camera to scan card numbers")
+        let settingsTitle = self.localized("alert_request_permissions_settings_button_title",
+                                     comment: "Settings")
+        let cancelTitle = self.localized("alert_request_permissions_cancel_button_title",
+                                         comment: "OK")
+        let alert = UIAlertController(title: message,
+                                      message: nil,
+                                      preferredStyle: .alert)
+        let settings = UIAlertAction(title: settingsTitle, style: .default) { _ in
+            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+        }
+        
+        let cancel = UIAlertAction(title: cancelTitle, style: .default) { [weak self]  _ in
+            guard let self = self else { return }
+            self.delegate?.dismissRecognizerVC(self)
+        }
+        
+        alert.addAction(cancel)
+        alert.addAction(settings)
+        
+        self.present(alert, animated: true)
+    }
+    
+    private func startCameraIfNeeded() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch (status) {
+        case .authorized:
+            recognizer.startCamera()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] isGranted in
+                if isGranted {
+                    DispatchQueue.main.async {
+                        self?.recognizer.startCamera()
+                    }
                 }
-                
-                let cancel = UIAlertAction(title: cancelTitle, style: .default) { [weak self]  _ in
-                    guard let self = self else { return }
-                    self.delegate?.dismissRecognizerVC(self)
-                }
-                
-                alert.addAction(cancel)
-                alert.addAction(settings)
-                
-                self.present(alert, animated: true)
             }
+        case .denied, .restricted:
+            showRequestCameraPermissionsAlert()
+        @unknown default:
+            showRequestCameraPermissionsAlert()
         }
     }
+    
+    private func stopCameraIfNeeded() {
+        if isCameraPermissionsGranted() {
+            recognizer.stopCamera()
+        }
+    }
+    
+    private func isCameraPermissionsGranted() -> Bool {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch (status) {
+        case .authorized:
+            return true
+        case .denied, .notDetermined, .restricted:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+//    private func requestCameraPermissions() {
+//        AVCaptureDevice.requestAccess(for: .video, completionHandler: {_ in })
+//    }
 }
 
 // MARK: - Localization
