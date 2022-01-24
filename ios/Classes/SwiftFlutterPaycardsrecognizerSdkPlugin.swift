@@ -250,11 +250,16 @@ extension RecognizerVC {
             recognizer.startCamera()
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { [weak self] isGranted in
-                if isGranted {
-                    DispatchQueue.main.async {
-                        self?.recognizer.startCamera()
+                guard let self = self else { return }
+                
+                DispatchQueue.main.async {
+                    if isGranted {
+                        self.recognizer.startCamera()
+                    } else {
+                        self.delegate?.dismissRecognizerVC(self)
                     }
                 }
+                
             }
         case .denied, .restricted:
             showRequestCameraPermissionsAlert()
