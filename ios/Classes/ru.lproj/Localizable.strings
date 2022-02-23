@@ -1,0 +1,11 @@
+/* 
+  LocalizedStrings.strings
+  Pods
+  Created by Alexey Popkov on 24.12.2021.
+*/
+
+"recognizer_screen_hint_position_card" = "Держите карту внутри рамки.\nОна будет считана автоматически.";
+"recognizer_screen_cancel_button_title" = "Отмена";
+"alert_request_permissions_message" = "Необходим доступ к камере. Вы можете разрешить доступ в настройках устройства.";
+"alert_request_permissions_settings_button_title" = "Настройки";
+"alert_request_permissions_cancel_button_title" = "OK";

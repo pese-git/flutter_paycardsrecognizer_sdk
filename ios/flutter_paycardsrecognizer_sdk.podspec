@@ -14,10 +14,12 @@ Flutter library for automatic recognition of bank card data using built-in camer
   s.author           = { 'Sergey Penkovsky' => 'sergey.penkovsky@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
+  s.resource = 'Classes/**/*.lproj/*.strings'
   s.dependency 'Flutter'
   s.dependency 'PayCardsRecognizer'
+  s.resource_bundle = { "flutter_paycardsrecognizer_sdk" => ["**/*.lproj/*.strings"] }
   s.static_framework = true
-  s.platform = :ios, '13.0'
+  s.platform = :ios, '12.0'
   #s.vendored_frameworks = 'PayCardsRecognizer.framework'
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64 i386' }
