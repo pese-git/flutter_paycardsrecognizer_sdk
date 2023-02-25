@@ -1,3 +1,8 @@
+## 0.0.5
+
+* added ky language
+* fixed errors
+
 ## 0.0.4
 
 * Fixed dependencies for IOS
