@@ -43,5 +43,9 @@
 	<false/>
     <key>NSCameraUsageDescription</key>
     <string>APPNAME requires access to your phone’s camera.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>
